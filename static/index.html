@@ -3,255 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviso Entity Resolution</title>
+    <title>Aviso Data Cleaner</title>
     <style>
-        /* --- 1. COLOR SYSTEM & VARIABLES --- */
-        :root {
-            --primary: #6C62D4;    /* From your Image */
-            --secondary: #2D3436;  /* Dark Slate for Text */
-            --bg: #F3F4F6;         /* Light Gray Background */
-            --white: #FFFFFF;
-            --success: #00B894;    /* Green for Matches */
-            --shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-        /* --- 2. GLOBAL STYLES --- */
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-            background-color: var(--bg);
-            color: var(--secondary);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* --- 3. HEADER --- */
-        header {
-            background-color: var(--primary);
-            width: 100%;
-            padding: 1.5rem 0;
-            text-align: center;
-            color: var(--white);
-            box-shadow: var(--shadow);
-        }
-        header h1 { margin: 0; font-size: 1.8rem; font-weight: 600; }
-        header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
-
-        /* --- 4. MAIN CONTAINER --- */
-        main {
-            width: 90%;
-            max-width: 600px;
-            margin-top: 3rem;
-        }
-
-        /* --- 5. SEARCH BOX (The Input) --- */
-        .search-card {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            text-align: center;
-        }
+        :root { --primary: #6C62D4; --bg: #F3F4F6; --white: #FFF; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; }
         
-        input[type="text"] {
-            width: 80%;
-            padding: 1rem;
-            font-size: 1.1rem;
-            border: 2px solid #E0E0E0;
-            border-radius: 8px;
-            outline: none;
-            transition: 0.3s;
-            margin-bottom: 1.5rem;
-        }
-        input[type="text"]:focus {
-            border-color: var(--primary);
-        }
+        header { background: var(--primary); color: white; width: 100%; padding: 1rem; text-align: center; }
+        
+        .container { width: 90%; max-width: 900px; margin-top: 2rem; }
+        
+        /* CARD STYLES */
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .card h2 { margin-top: 0; color: #333; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        /* DB STATS */
+        .stats-grid { display: flex; gap: 20px; }
+        .stat-box { background: #f8f9fa; padding: 10px; border-radius: 5px; flex: 1; text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
 
-        button {
-            background-color: var(--primary);
-            color: var(--white);
-            border: none;
-            padding: 1rem 2.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-        }
-        button:hover {
-            background-color: #5a52b5;
-            transform: translateY(-2px);
-        }
-        button:active { transform: translateY(0); }
-
-        /* --- 6. RESULTS AREA (Hidden by default) --- */
-        #result-area {
-            margin-top: 2rem;
-            display: none; /* Hidden until search */
-        }
-
-        .match-card {
-            background: var(--white);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            border-left: 8px solid var(--primary);
-            animation: slideIn 0.4s ease-out;
-        }
-
-        .match-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .score-badge {
-            background: var(--success);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .match-body { padding: 1.5rem; }
-        .row { margin-bottom: 10px; display: flex; }
-        .label { font-weight: 600; width: 100px; color: #888; }
-        .val { font-weight: 500; }
-
-        .colleagues-section {
-            background: #FAFAFA;
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #eee;
-        }
-        .colleagues-list {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        .colleague-chip {
-            background: #EAEAEA;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            color: var(--secondary);
-        }
-
-        /* Animation */
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        /* UPLOAD ZONE */
+        .upload-zone { border: 2px dashed #ccc; padding: 2rem; text-align: center; cursor: pointer; transition: 0.2s; }
+        .upload-zone:hover { border-color: var(--primary); background: #f0f0ff; }
+        
+        /* TABLE STYLES */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 0.9rem; }
+        th { background: #f1f1f1; }
+        
+        .score-high { color: green; font-weight: bold; }
+        .score-low { color: red; font-weight: bold; }
+        
+        /* BUTTONS */
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .actions { margin-top: 20px; text-align: right; display: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Aviso Entity Resolver</h1>
-        <p>AI-Powered Lead Matching & Knowledge Graph</p>
+        <h1>Aviso Intelligent Data Cleaner</h1>
     </header>
 
-    <main>
-        <div class="search-card">
-            <input type="text" id="leadInput" placeholder="e.g. mr. jon doe at acme corp..." autofocus>
-            <br>
-            <button onclick="resolveLead()">Resolve Entity</button>
-        </div>
-
-        <div id="result-area">
-            <div class="match-card">
-                <div class="match-header">
-                    <h2 style="margin:0; font-size:1.2rem;">Match Found</h2>
-                    <span class="score-badge" id="scoreBadge">92% Match</span>
+    <div class="container">
+        
+        <div class="card">
+            <h2>📂 Active Reference Database</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div>File Name</div>
+                    <div class="stat-val" id="dbName">Loading...</div>
                 </div>
-                
-                <div class="match-body">
-                    <div class="row">
-                        <span class="label">Name:</span>
-                        <span class="val" id="resName">John Doe</span>
-                    </div>
-                    <div class="row">
-                        <span class="label">Company:</span>
-                        <span class="val" id="resCompany">Acme Corp</span>
-                    </div>
-                    <div class="row">
-                        <span class="label">Email:</span>
-                        <span class="val" id="resEmail">john.d@acme.com</span>
-                    </div>
-                </div>
-
-                <div class="colleagues-section">
-                    <small style="text-transform: uppercase; color:#999; font-weight:bold; letter-spacing:1px;">Potential Colleagues</small>
-                    <div class="colleagues-list" id="colleaguesList">
-                        </div>
+                <div class="stat-box">
+                    <div>Total Records</div>
+                    <div class="stat-val" id="dbCount">...</div>
                 </div>
             </div>
+            <div style="margin-top:10px; font-size:0.8rem; color:#666;">
+                *This is the "Clean" source of truth we match against.
+            </div>
         </div>
-    </main>
+
+        <div class="card">
+            <h2>🧹 Upload Messy File</h2>
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <p>Click to Upload <b>.csv</b> File</p>
+                <input type="file" id="fileInput" accept=".csv" style="display:none" onchange="handleUpload()">
+            </div>
+        </div>
+
+        <div class="card" id="resultsCard" style="display:none;">
+            <h2>📝 Review Suggestions</h2>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Original Input</th>
+                            <th>AI Suggested Match</th>
+                            <th>Score</th>
+                            <th>Accept Change?</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div class="actions" style="display:block;">
+                <button class="btn-outline" onclick="location.reload()">Discard</button>
+                <button class="btn" onclick="exportCleaned()">Download Cleaned CSV</button>
+            </div>
+        </div>
+
+    </div>
 
     <script>
-        async function resolveLead() {
-            const input = document.getElementById('leadInput').value;
-            const resultArea = document.getElementById('result-area');
+        // 1. Load Database Info on Start
+        fetch('/db-info')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('dbName').innerText = data.filename;
+                document.getElementById('dbCount').innerText = data.total_records;
+            });
+
+        // 2. Handle File Upload
+        async function handleUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Show loading...
+            document.querySelector('.upload-zone p').innerText = "Processing AI Model...";
+
+            const res = await fetch('/upload-csv', { method: 'POST', body: formData });
+            const data = await res.json();
             
-            if(!input) return alert("Please enter a lead name.");
+            renderTable(data.results);
+            document.getElementById('resultsCard').style.display = 'block';
+            document.querySelector('.upload-zone p').innerText = "Upload New File";
+        }
 
-            // Button Loading State
-            const btn = document.querySelector('button');
-            const originalText = btn.innerText;
-            btn.innerText = "Searching Graph...";
-            btn.disabled = true;
+        let currentData = [];
 
-            try {
-                const response = await fetch('/resolve', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ raw_text: input })
-                });
+        // 3. Render the Review Table
+        function renderTable(results) {
+            currentData = results;
+            const tbody = document.querySelector('#resultsTable tbody');
+            tbody.innerHTML = '';
+
+            results.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                const isHigh = row.score > 0.6;
+                const scoreClass = isHigh ? 'score-high' : 'score-low';
+                const checked = isHigh ? 'checked' : '';
+
+                tr.innerHTML = `
+                    <td>${row.original}</td>
+                    <td><b>${row.suggested_name}</b><br><small>${row.suggested_company}</small></td>
+                    <td class="${scoreClass}">${(row.score * 100).toFixed(0)}%</td>
+                    <td><input type="checkbox" id="check-${index}" ${checked}></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 4. Export Functionality (Client-Side)
+        function exportCleaned() {
+            let csvContent = "data:text/csv;charset=utf-8,Original,Cleaned_Name,Cleaned_Company\n";
+            
+            currentData.forEach((row, index) => {
+                const isAccepted = document.getElementById(`check-${index}`).checked;
+                const finalName = isAccepted ? row.suggested_name : row.original;
+                const finalComp = isAccepted ? row.suggested_company : "";
                 
-                const data = await response.json();
+                csvContent += `"${row.original}","${finalName}","${finalComp}"\n`;
+            });
 
-                if (data.match_found) {
-                    // Populate Data
-                    document.getElementById('scoreBadge').innerText = (data.match_score * 100).toFixed(0) + "% Confidence";
-                    document.getElementById('resName').innerText = data.match_details.name;
-                    document.getElementById('resCompany').innerText = data.match_details.company;
-                    document.getElementById('resEmail').innerText = data.match_details.email;
-                    
-                    // Populate Colleagues
-                    const list = document.getElementById('colleaguesList');
-                    list.innerHTML = '';
-                    if(data.potential_colleagues && data.potential_colleagues.length > 0) {
-                        data.potential_colleagues.forEach(c => {
-                            const chip = document.createElement('div');
-                            chip.className = 'colleague-chip';
-                            chip.innerText = c;
-                            list.appendChild(chip);
-                        });
-                    } else {
-                        list.innerHTML = '<span style="color:#999; font-size:0.9rem;">No connections found in graph.</span>';
-                    }
-
-                    // Show Result
-                    resultArea.style.display = "block";
-                } else {
-                    alert("No match found for this lead.");
-                    resultArea.style.display = "none";
-                }
-
-            } catch (error) {
-                console.error(error);
-                alert("Error connecting to server.");
-            }
-
-            // Reset Button
-            btn.innerText = originalText;
-            btn.disabled = false;
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "aviso_cleaned_data.csv");
+            document.body.appendChild(link);
+            link.click();
         }
     </script>
 </body>
